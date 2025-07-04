@@ -11,7 +11,7 @@ import serial
 import serial.tools.list_ports
 
 
-PORT = "COM11"
+PORT = "COM5"
 FICHIER_LOG = ""
 TAB_FILTRE = []
 STATE_FILTRE = 0
@@ -52,7 +52,7 @@ def demarrer_interface():
     # Fonction lecture UART
     def lecture_UART(zone_texte, arret_event):
         print("start lecture")
-        ser = serial.Serial("COM11", baudrate=115200) # Ouverture d'une connexion
+        ser = serial.Serial(PORT, baudrate=115200) # Ouverture d'une connexion
         while not arret_event.is_set():
             txt = ser.readline()
             if STATE_FILTRE:
