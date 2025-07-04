@@ -58,12 +58,18 @@ def demarrer_interface():
             if STATE_FILTRE:
                 if FILTRE_TYPE.get() == "or":
                     if or_verificateur(txt):
-                        zone_texte.insert(tk.END, txt)
+                        zone_texte.insert(tk.END,datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+                        zone_texte.insert(tk.END,":: ")
+                        zone_texte.insert(tk.END,txt)
                 elif FILTRE_TYPE.get() == "and":
                     if and_verificateur(txt):
-                        zone_texte.insert(tk.END, txt)
+                        zone_texte.insert(tk.END,datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+                        zone_texte.insert(tk.END,":: ")
+                        zone_texte.insert(tk.END,txt)
             else:
-                zone_texte.insert(tk.END, txt)
+                zone_texte.insert(tk.END,datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+                zone_texte.insert(tk.END,":: ")
+                zone_texte.insert(tk.END,txt)
             zone_texte.see(tk.END)
             
         ser.close() # Fermeture de la connexion 
