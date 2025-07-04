@@ -9,6 +9,7 @@ import time
 import os
 import serial
 import serial.tools.list_ports
+import datetime
 
 
 PORT = "COM5"
