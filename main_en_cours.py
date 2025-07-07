@@ -112,22 +112,22 @@ def demarrer_interface():
             Texte_filtre.insert(tk.END,"Filtre désactivé")
         Texte_filtre.config(state="disabled")
              
-    def Parametres(): 
-    
-        # Fonction qui récupère les valeurs
-            def valider():
-                global PORT
-                PORT = selection_port.get()
-                print("Port selectionné :", PORT)
-                fenetre_saisie.destroy()  # Ferme la petite fenêtre
-                
+    def Parametres_serie(): 
         # Création de la fenetre
-        fenetre_filtre = Toplevel(fenetre)  
-        fenetre_filtre.title("Paramètres de Filtrage")
-        fenetre_filtre.geometry("250x150")
+        fenetre_param_port = Toplevel(fenetre)  
+        fenetre_param_port.title("Paramètres Serie")
+        fenetre_param_port.geometry("250x150")
+        
+         # Fonction qui récupère les valeurs
+        def valider():
+            global PORT
+            PORT = selection_port.get()
+            print("Port selectionné :", PORT)
+            fenetre_param_port.destroy()  # Ferme la petite fenêtre
         
         # Selection du Port
-        selection_port = Spinbox(master, from_=0, to=10)
+        selection_port = Spinbox(fenetre_param_port, from_=0, to=10,textvariable=5)
+        selection_port.pack(side="left")
     
     def start():
         # Démarre mon thread 
@@ -253,7 +253,7 @@ def demarrer_interface():
     menubar.add_cascade(label="Filtre", menu=menu2)
     
     menu3 = Menu(menubar, tearoff=0)
-    menu3.add_command(label="Serie", command=POWER_FILTRE)
+    menu3.add_command(label="Serie", command=Parametres_serie)
     menu3.add_command(label="Fichier Log", command=fenetre_param_filtre)
     menubar.add_cascade(label="Parametres", menu=menu3)
 
