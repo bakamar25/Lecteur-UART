@@ -4,12 +4,14 @@ from tkinter import scrolledtext
 from tkinter.filedialog import *
 from tkinter.messagebox import *
 from tkinter import * 
+from tkinter import ttk
 import threading
 import time
 import os
 import serial
 import serial.tools.list_ports
 import datetime
+
 
 PORT = "COM5"
 READ_SPEED = 115200 
@@ -92,7 +94,6 @@ def demarrer_interface():
     Texte_filtre.pack(side="left")
     Texte_filtre.insert(tk.END,"Filtre désactivé")
     Texte_filtre.config(state="disabled")
-
     
     # Zone de texte 
     texte = scrolledtext.ScrolledText(fenetre, wrap=tk.WORD)
@@ -117,17 +118,40 @@ def demarrer_interface():
         fenetre_param_port = Toplevel(fenetre)  
         fenetre_param_port.title("Paramètres Serie")
         fenetre_param_port.geometry("250x150")
+        fenetre_param_port.transient(fenetre)  # Se comporte comme une fenêtre dépendante de la principale
+        fenetre_param_port.grab_set()       # Empêche d'interagir avec la fenêtre principale
+        fenetre_param_port.focus_force()    # Met le focus sur la nouvelle fenêtre
         
          # Fonction qui récupère les valeurs
         def valider():
-            global PORT
-            PORT = selection_port.get()
-            print("Port selectionné :", PORT)
-            fenetre_param_port.destroy()  # Ferme la petite fenêtre
+            global PORT,READ_SPEED
+            if Selection_port.get() == "0" or Selection_vitesse.get() == "" :
+                showerror("ERREUR","Mauvaise selection des paramêtres")
+            else :
+                PORT = "COM" + Selection_port.get()
+                READ_SPEED = Selection_vitesse .get()
+                print("Port selectionné :", PORT)
+                print("Vitesse selectionnée :", READ_SPEED)
+                fenetre_param_port.destroy()  # Ferme la petite fenêtre
         
         # Selection du Port
-        selection_port = Spinbox(fenetre_param_port, from_=0, to=10,textvariable=5)
-        selection_port.pack(side="left")
+        label_port = tk.Label(fenetre_param_port, text = "Port de communication :")
+        label_port.pack(side="top")
+        Selection_port = Spinbox(fenetre_param_port, from_=0, to=10,textvariable=5)
+        Selection_port.pack(side="top")
+        
+        # Selection de la vitesse
+        label_vitesse = tk.Label(fenetre_param_port, text = "Vitesse de communication :")
+        label_vitesse.pack(side="top")
+        Choix_vitesses=[1200,2400,4800,9600,19200,28800,38400,43000,56000,57600,115200,12800,256000]
+        Selection_vitesse = ttk.Combobox(fenetre_param_port, values=Choix_vitesses)
+        Selection_vitesse.pack(side="top")
+        
+        # Bouton de validation
+        bouton_valider = tk.Button(fenetre_param_port, text="Valider", command=valider)
+        bouton_valider.pack(pady=5)
+        
+
     
     def start():
         # Démarre mon thread 
@@ -163,6 +187,9 @@ def demarrer_interface():
         fenetre_filtre = Toplevel(fenetre)  
         fenetre_filtre.title("Paramètres de Filtrage")
         fenetre_filtre.geometry("250x150")
+        fenetre_filtre.transient(fenetre)  # Se comporte comme une fenêtre dépendante de la principale
+        fenetre_filtre.grab_set()       # Empêche d'interagir avec la fenêtre principale
+        fenetre_filtre.focus_force()    # Met le focus sur la nouvelle fenêtre
         
         # Met à jours l'affichage des filtres pour l'utilisateur
         def mise_a_jours_affichage():
@@ -188,6 +215,9 @@ def demarrer_interface():
             fenetre_saisie = Toplevel(fenetre)
             fenetre_saisie.title("Saisir un texte")
             fenetre_saisie.geometry("300x120")
+            fenetre_saisie.transient(fenetre)  # Se comporte comme une fenêtre dépendante de la principale
+            fenetre_saisie.grab_set()       # Empêche d'interagir avec la fenêtre principale
+            fenetre_saisie.focus_force()    # Met le focus sur la nouvelle fenêtre
 
             # Label
             label = tk.Label(fenetre_saisie, text="Entrez votre filtre :")
