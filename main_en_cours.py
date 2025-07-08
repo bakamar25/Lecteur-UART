@@ -185,14 +185,18 @@ def demarrer_interface():
         print("Start::Le type de filtre est ",FILTRE_TYPE.get())
 
         texte.delete("1.0", tk.END)
-        if 1:
+        try : 
+            ser = serial.Serial(PORT, baudrate=READ_SPEED) # Ouverture d'une connexion
+            ser.close()
+        except : 
+            showerror("Liaison Port","La connexion avec le port n'est pas possible")
+        else :
             thread_lecture = threading.Thread(target=lecture_UART, args=(texte, arret_event))
             thread_lecture.daemon = True # Sert à faire tourner en arrière plan
             arret_event.clear()# Clear la var qui fini la fonction
             thread_lecture.start()
             canvas.itemconfig(voyant_id, fill="green")
-        else :
-            showerror("Fichier introuvable","Le fichier selectionné est introuvable")
+            
             
     def stop():
         canvas.itemconfig(voyant_id, fill="red")
