@@ -53,7 +53,7 @@ def demarrer_interface():
         print("start lecture")
         ser = serial.Serial(PORT, baudrate=READ_SPEED) # Ouverture d'une connexion         
         while not arret_event.is_set():
-            f = open(CASE_PATH + "/" + FILE_NAME + ".txt", 'a')# Ouverture du fichier
+            f = open(CASE_PATH + "/" + datetime.datetime.today().strftime('%Y_%m_%d_') + FILE_NAME + "_py.txt", 'a')# Ouverture du fichier
             txt = ser.readline()
             try : 
                 txt_modif = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ":: " + txt.decode()
@@ -232,6 +232,8 @@ def demarrer_interface():
         def New_NAME():
             global FILE_NAME
             FILE_NAME = tk.simpledialog.askstring(title="Nouveau Nom",prompt="Nouveau Nom : ") 
+            print(f"FILE_NAME = {FILE_NAME}")
+            if FILE_NAME == None : FILE_NAME = "Log_UART"
             affichage_nom()
             
         # Ajout d'un texte pour le Chemin
