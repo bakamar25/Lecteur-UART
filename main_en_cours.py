@@ -15,7 +15,8 @@ import datetime
 
 PORT = "COM5"
 READ_SPEED = 115200 
-FICHIER_LOG = ""
+FILE_NAME = "Log_UART"
+CASE_PATH = "./"
 TAB_FILTRE = []
 STATE_FILTRE = 0
 STATE_LECTURE_LOG = 0  # Sert à bloquer certaines actions pendant l'écriture
@@ -56,24 +57,24 @@ def demarrer_interface():
     # Fonction lecture UART
     def lecture_UART(zone_texte, arret_event):
         print("start lecture")
-        ser = serial.Serial(PORT, baudrate=115200) # Ouverture d'une connexion
+        ser = serial.Serial(PORT, baudrate=READ_SPEED) # Ouverture d'une connexion         
         while not arret_event.is_set():
+            f = open(CASE_PATH + "/" + FILE_NAME + ".txt", 'a')# Ouverture du fichier
             txt = ser.readline()
+            txt_modif = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ":: " + txt.decode()
+            txt_modif_log = txt_modif.replace("\n","") # Adapté pour ne pas avoir des doubles saut de ligne en log
+            print (txt)
             if STATE_FILTRE:
                 if FILTRE_TYPE.get() == "or":
                     if or_verificateur(txt):
-                        zone_texte.insert(tk.END,datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
-                        zone_texte.insert(tk.END,":: ")
-                        zone_texte.insert(tk.END,txt)
+                        zone_texte.insert(tk.END,txt_modif)
                 elif FILTRE_TYPE.get() == "and":
                     if and_verificateur(txt):
-                        zone_texte.insert(tk.END,datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
-                        zone_texte.insert(tk.END,":: ")
-                        zone_texte.insert(tk.END,txt)
+                        zone_texte.insert(tk.END,txt_modif)
             else:
-                zone_texte.insert(tk.END,datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
-                zone_texte.insert(tk.END,":: ")
-                zone_texte.insert(tk.END,txt)
+                zone_texte.insert(tk.END,txt_modif)
+            f.write(txt_modif_log)
+            f.close()
             zone_texte.see(tk.END)
             
         ser.close() # Fermeture de la connexion 
@@ -90,10 +91,22 @@ def demarrer_interface():
     voyant_id = canvas.create_oval(2, 2, 18, 18, fill="red")
     
     # Ajout d'un texte pour l'état du filtre 
-    Texte_filtre = Text(menu_frame,height = 1, bg="lightgrey")
+    Texte_filtre = Text(menu_frame,height = 1, width=18, bg="lightgrey")
     Texte_filtre.pack(side="left")
     Texte_filtre.insert(tk.END,"Filtre désactivé")
     Texte_filtre.config(state="disabled")
+    
+    # Ajout d'un texte pour le PORT
+    Texte_port = Text(menu_frame,height = 1, bg="lightgrey",width=14)
+    Texte_port.pack(side="left")
+    Texte_port.insert(tk.END,"PORT : " + PORT)
+    Texte_port.config(state="disabled")
+    
+    # Ajout d'un texte pour la vitesse de lecture
+    Texte_vitesse = Text(menu_frame,height = 1, bg="lightgrey")
+    Texte_vitesse.pack(side="left")
+    Texte_vitesse.insert(tk.END,"Vitesse : " + str(READ_SPEED))
+    Texte_vitesse.config(state="disabled")
     
     # Zone de texte 
     texte = scrolledtext.ScrolledText(fenetre, wrap=tk.WORD)
@@ -102,7 +115,7 @@ def demarrer_interface():
     # Définit mes conditions de thread pour faire fonctionner mes fonctions 
     arret_event = threading.Event()
 
-    def Filtre_Texte_mise_a_jours(etat):
+    def Filtre_Texte_mise_a_jour(etat):
         if etat:
             Texte_filtre.config(state="normal")
             Texte_filtre.delete("1.0", tk.END)
@@ -112,7 +125,20 @@ def demarrer_interface():
             Texte_filtre.delete("1.0", tk.END)
             Texte_filtre.insert(tk.END,"Filtre désactivé")
         Texte_filtre.config(state="disabled")
-             
+    
+    def Parametres_mise_a_jour():
+        # Modification du port 
+        Texte_port.config(state="normal")
+        Texte_port.delete("1.0", tk.END)
+        Texte_port.insert(tk.END,"PORT : " + PORT)
+        Texte_port.config(state="disabled")
+        
+        # Modification de la vitesse 
+        Texte_vitesse.config(state="normal")
+        Texte_vitesse.delete("1.0", tk.END)
+        Texte_vitesse.insert(tk.END,"Vitesse : " + str(READ_SPEED))
+        Texte_vitesse.config(state="disabled")
+    
     def Parametres_serie(): 
         # Création de la fenetre
         fenetre_param_port = Toplevel(fenetre)  
@@ -132,6 +158,7 @@ def demarrer_interface():
                 READ_SPEED = Selection_vitesse .get()
                 print("Port selectionné :", PORT)
                 print("Vitesse selectionnée :", READ_SPEED)
+                Parametres_mise_a_jour()
                 fenetre_param_port.destroy()  # Ferme la petite fenêtre
         
         # Selection du Port
@@ -155,7 +182,7 @@ def demarrer_interface():
     
     def start():
         # Démarre mon thread 
-        print("Start::Chemin de log ",FICHIER_LOG)
+        print("Start::Chemin de log ",FILE_NAME)
         print("Start::Le type de filtre est ",FILTRE_TYPE.get())
 
         texte.delete("1.0", tk.END)
@@ -172,7 +199,54 @@ def demarrer_interface():
         canvas.itemconfig(voyant_id, fill="red")
         arret_event.set()
         
-    
+    def Parametres_fichier_log() :
+        # Création de la fenetre
+        fenetre_param_fichier_log = Toplevel(fenetre)  
+        fenetre_param_fichier_log.title("Paramètres Serie")
+        fenetre_param_fichier_log.geometry("750x150")
+        fenetre_param_fichier_log.transient(fenetre)  # Se comporte comme une fenêtre dépendante de la principale
+        fenetre_param_fichier_log.grab_set()       # Empêche d'interagir avec la fenêtre principale
+        fenetre_param_fichier_log.focus_force()    # Met le focus sur la nouvelle fenêtre
+        
+        def affichage_chemin():
+            Texte_chemin.config(state="normal")
+            Texte_chemin.delete("1.0", tk.END)
+            Texte_chemin.insert(tk.END,"Chemin : " + CASE_PATH)
+            Texte_chemin.config(state="disabled")
+            
+        def New_Case():
+            global CASE_PATH
+            CASE_PATH = tk.filedialog.askdirectory(title="Selection du répertoire",mustexist=True) 
+            if CASE_PATH == "" : CASE_PATH= "./"
+            affichage_chemin()
+            
+        def affichage_nom():
+            Texte_nom.config(state="normal")
+            Texte_nom.delete("1.0", tk.END)
+            Texte_nom.insert(tk.END,"Nom : " + FILE_NAME)
+            Texte_nom.config(state="disabled")
+            
+        def New_NAME():
+            global FILE_NAME
+            FILE_NAME = tk.simpledialog.askstring(title="Nouveau Nom",prompt="Nouveau Nom : ") 
+            affichage_nom()
+            
+        # Ajout d'un texte pour le Chemin
+        Texte_chemin = Text(fenetre_param_fichier_log,height = 1, bg="lightgrey")
+        Texte_chemin.pack()
+        affichage_chemin()
+        
+        # Bouton pour changer le dossier
+        Button(fenetre_param_fichier_log, text="Changer de dossier", command=New_Case).pack()
+        
+        # Ajout d'un texte pour le Nom
+        Texte_nom = Text(fenetre_param_fichier_log,height = 1, bg="lightgrey")
+        Texte_nom.pack()
+        affichage_nom()
+        
+        # Bouton pour changer le Nom
+        Button(fenetre_param_fichier_log, text="Changer de nom", command=New_NAME).pack()
+        
         
     def POWER_FILTRE(): 
         global STATE_FILTRE
@@ -180,7 +254,7 @@ def demarrer_interface():
             STATE_FILTRE = 0
         else : 
             STATE_FILTRE = 1
-        Filtre_Texte_mise_a_jours(STATE_FILTRE)
+        Filtre_Texte_mise_a_jour(STATE_FILTRE)
     
     def fenetre_param_filtre():
         # Création de la fenetre
@@ -284,7 +358,7 @@ def demarrer_interface():
     
     menu3 = Menu(menubar, tearoff=0)
     menu3.add_command(label="Serie", command=Parametres_serie)
-    menu3.add_command(label="Fichier Log", command=fenetre_param_filtre)
+    menu3.add_command(label="Fichier Log", command=Parametres_fichier_log)
     menubar.add_cascade(label="Parametres", menu=menu3)
 
 
