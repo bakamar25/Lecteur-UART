@@ -25,21 +25,15 @@ STATE_LECTURE_LOG = 0  # Sert à bloquer certaines actions pendant l'écriture
 
 # Fonction pour filtrer la ligne ET
 def and_verificateur(txt):
-    string = txt.decode('utf-8') 
-    print("TAB :", TAB_FILTRE)
     for element in TAB_FILTRE: 
-        print(element," in ",string)
-        if element not in string : 
+        if element not in txt : 
             return False
     return True
 
 # Fonction pour filtrer la ligne OU
 def or_verificateur(txt):
-    string = txt.decode('utf-8') 
-    print("TAB :", TAB_FILTRE)
     for element in TAB_FILTRE: 
-        print(element," in ",string)
-        if element in string:
+        if element in txt:
             return True
     return False
     
@@ -61,21 +55,26 @@ def demarrer_interface():
         while not arret_event.is_set():
             f = open(CASE_PATH + "/" + FILE_NAME + ".txt", 'a')# Ouverture du fichier
             txt = ser.readline()
-            txt_modif = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ":: " + txt.decode()
-            txt_modif_log = txt_modif.replace("\n","") # Adapté pour ne pas avoir des doubles saut de ligne en log
-            print (txt)
-            if STATE_FILTRE:
-                if FILTRE_TYPE.get() == "or":
-                    if or_verificateur(txt):
-                        zone_texte.insert(tk.END,txt_modif)
-                elif FILTRE_TYPE.get() == "and":
-                    if and_verificateur(txt):
-                        zone_texte.insert(tk.END,txt_modif)
-            else:
-                zone_texte.insert(tk.END,txt_modif)
-            f.write(txt_modif_log)
-            f.close()
-            zone_texte.see(tk.END)
+            try : 
+                txt_modif = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S') + ":: " + txt.decode()
+            except : 
+                zone_texte.insert(tk.END,"erreur convertion utf-8\r\n")
+                f.write("erreur convertion utf-8\n")
+                print("erreur convertion utf-8") 
+            else : 
+                txt_modif_log = txt_modif.replace("\n","") # Adapté pour ne pas avoir des doubles saut de ligne en log
+                if STATE_FILTRE:
+                    if FILTRE_TYPE.get() == "or":
+                        if or_verificateur(txt_modif):
+                            zone_texte.insert(tk.END,txt_modif)
+                    elif FILTRE_TYPE.get() == "and":
+                        if and_verificateur(txt_modif):
+                            zone_texte.insert(tk.END,txt_modif)
+                else:
+                    zone_texte.insert(tk.END,txt_modif)
+                f.write(txt_modif_log)
+                f.close()
+                zone_texte.see(tk.END)
             
         ser.close() # Fermeture de la connexion 
         print("end lecture")
